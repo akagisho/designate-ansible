@@ -1,0 +1,18 @@
+[Unit]
+Description=Designate DNSaaS Pool Manager
+After=postgresql.service mysql.service keystone.service rabbitmq-server.service ntp.service 
+
+[Service]
+User=designate
+Group=designate
+WorkingDirectory=/var/lib/designate
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p /var/lock/designate /var/log/designate /var/lib/designate
+ExecStartPre=/bin/chown designate:designate /var/lock/designate /var/log/designate /var/lib/designate
+ExecStart=/etc/init.d/designate-pool-manager systemd-start
+Restart=on-failure
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
+

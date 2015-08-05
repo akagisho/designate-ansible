@@ -1,0 +1,18 @@
+---
+- name: set timezone to Asia/Tokyo
+  shell: date | grep -q JST || (cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && echo changed)
+  register: result
+  changed_when: "'changed' in result.stdout"
+
+- name: change apt repository to jp
+  replace: >
+    dest=/etc/apt/sources.list
+    regexp="http://archive\.ubuntu\.com/"
+    replace="http://jp.archive.ubuntu.com/"
+
+- name: install packages
+  apt: >
+    pkg={{ item }}
+    update_cache=yes
+  with_items:
+    - python-pip

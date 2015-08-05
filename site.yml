@@ -1,0 +1,14 @@
+---
+- name: master
+  hosts: master
+  sudo: yes
+  roles:
+    - common
+    - designate
+
+- name: bind
+  hosts: bind
+  sudo: yes
+  roles:
+    - common
+    - bind

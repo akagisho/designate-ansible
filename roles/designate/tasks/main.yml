@@ -1,0 +1,95 @@
+---
+- name: install depences
+  apt: name={{ item }}
+  with_items:
+    - designate
+    - designate-doc
+#    - designate-sink
+    - python-designateclient
+    - rabbitmq-server
+    - mariadb-server
+    - libmysqlclient-dev
+    - bind9utils
+
+- name: put init.d scripts
+  copy: >
+    src={{ item }}
+    dest=/etc/init.d/
+    mode=0755
+  with_fileglob:
+    - etc/init.d/designate-*
+
+- name: put systemd files
+  copy: >
+    src={{ item }}
+    dest=/lib/systemd/system/
+  with_fileglob:
+    - lib/systemd/system/designate-*
+
+- name: set services to start automatically
+  service: >
+    name={{ item }}
+    enabled=yes
+  with_items:
+    - designate-mdns
+    - designate-pool-manager
+
+- name: create rabbitmq user
+  shell: 'rabbitmqctl add_user designate designate || :'
+  register: result
+  changed_when: "'user_already_exists' not in result.stderr"
+
+- name: set rabbitmq permission
+  shell: rabbitmqctl list_user_permissions designate | grep -q '^/\s' || rabbitmqctl set_permissions -p / designate ".*" ".*" ".*"
+  register: result
+  changed_when: "'Setting permissions' in result.stdout"
+
+- name: install depences
+  pip: name={{ item }}
+  with_items:
+    - mysql-python
+
+- name: create mysql databases
+  mysql_db: name={{ item }}
+  with_items:
+    - designate
+    - designate_pool_manager
+
+- name: create mysql user
+  mysql_user: >
+    name=designate
+    password=designate
+    priv=designate%.*:ALL state=present
+
+- name: put config file
+  template: >
+    src=etc/designate/designate.conf.j2
+    dest=/etc/designate/designate.conf
+  notify:
+    - restart designate-agent
+    - restart designate-api
+    - restart designate-central
+    - restart designate-mdns
+    - restart designate-pool-manager
+
+- name: sync designate database
+  shell: designate-manage database sync && designate-manage pool-manager-cache sync
+  register: result
+  changed_when: "'done' in result.stdout"
+  notify:
+    - restart designate-agent
+    - restart designate-api
+    - restart designate-central
+    - restart designate-mdns
+    - restart designate-pool-manager
+
+- name: create bind directory
+  file: >
+    path=/etc/bind
+    state=directory
+
+- name: put rndc.key
+  template: >
+    src=etc/bind/rndc.key.j2
+    dest=/etc/bind/rndc.key
+    mode=0640
