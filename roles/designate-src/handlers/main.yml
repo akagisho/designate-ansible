@@ -1,0 +1,25 @@
+---
+- name: restart designate-agent
+  service: >
+    name=designate-agent
+    state=restarted
+
+- name: restart designate-api
+  service: >
+    name=designate-api
+    state=restarted
+
+- name: restart designate-central
+  service: >
+    name=designate-central
+    state=restarted
+
+- name: restart designate-mdns
+  service: >
+    name=designate-mdns
+    state=restarted
+
+- name: restart designate-pool-manager
+  service: >
+    name=designate-pool-manager
+    state=restarted

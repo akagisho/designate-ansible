@@ -1,0 +1,168 @@
+---
+- name: install depences
+  apt: name={{ item }}
+  with_items:
+    - git
+    - python-pip
+    - rabbitmq-server
+    - mariadb-server
+    - libmysqlclient-dev
+    - bind9utils
+
+- name: build python-lxml
+  shell: apt-get build-dep -y python-lxml
+  register: result
+  changed_when: "'0 newly installed' not in result.stdout"
+
+- name: put deb packages
+  copy: >
+    src={{ item }}
+    dest=/usr/local/src/
+  with_fileglob:
+    - usr/local/src/*.deb
+
+- name: install depences
+  apt: deb={{ item }}
+  with_items:
+    - /usr/local/src/python-six_1.9.0-1_all.deb
+    - /usr/local/src/python-six-whl_1.9.0-1_all.deb
+
+- name: create user
+  user: name=designate
+
+- name: create rabbitmq user
+  shell: 'rabbitmqctl add_user designate designate || :'
+  register: result
+  changed_when: "'user_already_exists' not in result.stderr"
+
+- name: set rabbitmq permission
+  shell: rabbitmqctl list_user_permissions designate | grep -q '^/\s' || rabbitmqctl set_permissions -p / designate ".*" ".*" ".*"
+  register: result
+  changed_when: "'Setting permissions' in result.stdout"
+
+- name: install depences
+  pip: name={{ item }}
+  with_items:
+    - mysql-python
+    - wrapt
+
+- name: create mysql databases
+  mysql_db: name={{ item }}
+  with_items:
+    - designate
+    - designate_pool_manager
+
+- name: create mysql user
+  mysql_user: >
+    name=designate
+    password=designate
+    priv=designate%.*:ALL state=present
+
+- name: get sources of designate
+  git: >
+    repo=https://github.com/openstack/designate.git
+    version={{ designate_version | default("HEAD") }}
+    dest=/var/lib/designate
+
+- name: install designate
+  shell: >
+    pip install -r requirements.txt -r test-requirements.txt && python setup.py install && touch /var/tmp/designate_{{ designate_version }}
+    chdir=/var/lib/designate
+    creates=/var/tmp/designate_{{ designate_version }}
+
+- name: create log directory
+  file: >
+    dest=/var/log/designate
+    state=directory
+
+- name: create symbolic link
+  shell: "ls -1 /usr/local/bin/designate-* | xargs -I {} ln -sv {} /usr/bin/ 2> /dev/null || :"
+  register: result
+  changed_when: "' -> ' in result.stdout"
+
+- name: create symbolic link
+  file: >
+    src=/var/lib/designate/etc/designate
+    dest=/etc/designate
+    state=link
+
+- name: put sudoers config file
+  copy: >
+    src=etc/sudoers.d/designate_sudoers
+    dest=/etc/sudoers.d/designate_sudoers
+    mode=0440
+
+- name: put config file
+  template: >
+    src=etc/designate/designate.conf.j2
+    dest=/etc/designate/designate.conf
+  notify:
+    - restart designate-agent
+    - restart designate-api
+    - restart designate-central
+    - restart designate-mdns
+    - restart designate-pool-manager
+
+- name: put config file
+  copy: >
+    src=etc/designate/rootwrap.conf
+    dest=/etc/designate/rootwrap.conf
+  notify:
+    - restart designate-agent
+    - restart designate-api
+    - restart designate-central
+    - restart designate-mdns
+    - restart designate-pool-manager
+
+- name: put initial scripts
+  copy: >
+    src={{ item }}
+    dest=/etc/init.d/
+    mode=0755
+  with_fileglob:
+    - etc/init.d/designate-*
+
+- name: set services to start automatically
+  service: >
+    name={{ item }}
+    enabled=yes
+  with_items:
+    - designate-agent
+    - designate-api
+    - designate-central
+    - designate-mdns
+    - designate-pool-manager
+
+- name: sync designate database
+  shell: designate-manage database sync && designate-manage pool-manager-cache sync
+  register: result
+  changed_when: "'done' in result.stdout"
+  notify:
+    - restart designate-agent
+    - restart designate-api
+    - restart designate-central
+    - restart designate-mdns
+    - restart designate-pool-manager
+
+- name: create bind directory
+  file: >
+    path=/etc/bind
+    state=directory
+
+- name: put rndc.key
+  template: >
+    src=etc/bind/rndc.key.j2
+    dest=/etc/bind/rndc.key
+    mode=0640
+
+- name: get sources of python-designateclient
+  git: >
+    repo=https://github.com/openstack/python-designateclient.git
+    version={{ designate_client_version | default("HEAD") }}
+    dest=/usr/local/src/python-designateclient
+
+- name: install python-designateclient
+  shell: >
+    pip install -r requirements.txt -r test-requirements.txt && python setup.py install && touch /var/tmp/designate_client_{{ designate_client_version }}
+    chdir=/usr/local/src/python-designateclient
+    creates=/var/tmp/designate_client_{{ designate_client_version }}
