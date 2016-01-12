@@ -6,7 +6,7 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define :node1 do |node|
-    node.vm.box = "ubuntu/vivid64"
+    node.vm.box = "ubuntu/trusty64"
     node.vm.network :private_network, ip: "10.200.19.40"
     node.vm.provider :virtualbox do |vb|
       vb.customize ["modifyvm", :id, "--memory", 1024]

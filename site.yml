@@ -4,7 +4,7 @@
   sudo: yes
   roles:
     - common
-    - designate
+    - designate-src
 
 - name: bind
   hosts: bind
