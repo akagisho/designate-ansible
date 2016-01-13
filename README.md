@@ -24,7 +24,7 @@ Start VMs.
 
     $ vagrant provision
         OR
-    $ ansible-playbook -i develop/inventory site.yml
+    $ ansible-playbook -i inventories/development site.yml
 
 ### Register servers on Designate
 

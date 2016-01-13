@@ -2,6 +2,8 @@
 - name: master
   hosts: master
   sudo: yes
+  vars_files:
+    - vars/{{ env }}.yml
   roles:
     - common
     - designate-src
@@ -9,6 +11,8 @@
 - name: bind
   hosts: bind
   sudo: yes
+  vars_files:
+    - vars/{{ env }}.yml
   roles:
     - common
     - bind

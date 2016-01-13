@@ -31,7 +31,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       "bind" => ["node2", "node3"],
     }
 
-    ansible.extra_vars = "develop/group_vars/all"
+    ansible.extra_vars = "vars/development.yml"
   end
 
   config.ssh.insert_key = false
