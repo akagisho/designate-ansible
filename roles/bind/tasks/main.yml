@@ -1,6 +1,8 @@
 ---
 - name: install depences
-  apt: name={{ item }}
+  apt: >
+    name={{ item }}
+    update_cache=yes
   with_items:
     - bind9
 

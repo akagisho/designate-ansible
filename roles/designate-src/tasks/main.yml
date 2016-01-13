@@ -1,17 +1,14 @@
 ---
 - name: install depences
-  apt: name={{ item }}
+  apt: >
+    name={{ item }}
+    update_cache=yes
   with_items:
     - git
     - rabbitmq-server
     - mariadb-server
     - libmysqlclient-dev
     - bind9utils
-
-- name: install pip
-  shell: curl https://bootstrap.pypa.io/get-pip.py | python
-  register: result
-  changed_when: "'Successfully installed' in result.stdout"
 
 - name: build python-lxml
   shell: apt-get build-dep -y python-lxml
