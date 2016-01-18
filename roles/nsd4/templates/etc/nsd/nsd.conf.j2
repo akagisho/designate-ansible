@@ -236,7 +236,7 @@ remote-control:
 pattern:
     name: "slave"
     zonefile: "%s.zone"
-    allow-notify: {{ master }}@5354 NOKEY
+    allow-notify: {{ master }} NOKEY
     request-xfr: {{ master }}@5354 NOKEY
     provide-xfr: {{ master }} NOKEY
     allow-axfr-fallback: yes
