@@ -16,3 +16,12 @@
   roles:
     - common
     - bind
+
+- name: nsd4
+  hosts: nsd4
+  sudo: yes
+  vars_files:
+    - vars/{{ env }}.yml
+  roles:
+    - common
+    - nsd4

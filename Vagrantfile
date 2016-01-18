@@ -28,7 +28,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     ansible.groups = {
       "master" => ["node1"],
-      "bind" => ["node2", "node3"],
+      "bind" => ["node2"],
+      "nsd4" => ["node3"],
     }
 
     ansible.extra_vars = "vars/development.yml"

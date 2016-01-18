@@ -1,0 +1,24 @@
+---
+- name: install depences
+  apt: >
+    name={{ item }}
+    update_cache=yes
+  with_items:
+    - nsd
+
+- name: put nsd.conf
+  template: >
+    src=etc/nsd/nsd.conf.j2
+    dest=/etc/nsd/nsd.conf
+  notify: restart nsd
+
+- name: put pem files
+  copy: >
+    src={{ item }}
+    dest=/etc/nsd/
+    owner=nsd
+    group=nsd
+    mode=0640
+  with_fileglob:
+    - etc/nsd/nsd_*
+  notify: restart nsd

@@ -145,16 +145,29 @@
     - restart designate-mdns
     - restart designate-pool-manager
 
-- name: create bind directory
+- name: create directories
   file: >
-    path=/etc/bind
+    path={{ item }}
     state=directory
+  with_items:
+    - /etc/bind
+    - /etc/nsd
 
 - name: put rndc.key
   template: >
     src=etc/bind/rndc.key.j2
     dest=/etc/bind/rndc.key
     mode=0640
+
+- name: put nsd pem files
+  copy: >
+    src={{ item }}
+    dest=/etc/nsd/
+    owner=designate
+    group=designate
+    mode=0640
+  with_fileglob:
+    - ../../nsd4/files/etc/nsd/nsd_control.*
 
 - name: get sources of python-designateclient
   git: >

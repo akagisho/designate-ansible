@@ -102,9 +102,14 @@ port = 53
 {% endfor %}
 {% for slave in slaves %}
 [pool_target:{{ slave.uuid}}2]
+{% if slave.type == 'bind' %}
 options = rndc_host: {{ slave.addr }}, rndc_port: 953, rndc_key_file: /etc/bind/rndc.key, port: 53, host: {{ slave.addr }}
-masters = {{ master }}:5354
 type = bind9
+masters = {{ master }}:5354
+{% elif slave.type == 'nsd4' %}
+options = host: {{ slave.addr }}, pattern: slave, certfile: /etc/nsd/nsd_control.pem, keyfile: /etc/nsd/nsd_control.key
+type = nsd4
+{% endif %}
 
 {% endfor %}
 ########################

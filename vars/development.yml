@@ -4,7 +4,7 @@ env: development
 master: 10.200.19.40
 
 slaves:
-  - { addr: 10.200.19.41, uuid: f02a0c72-c701-4ec2-85d7-197b30992ce }
-  - { addr: 10.200.19.42, uuid: afb70593-1880-46bd-b064-c52b221e3da }
+  - { type: bind, addr: 10.200.19.41, uuid: f02a0c72-c701-4ec2-85d7-197b30992ce }
+  - { type: nsd4, addr: 10.200.19.42, uuid: afb70593-1880-46bd-b064-c52b221e3da }
 
 rndc_key: { algorithm: hmac-md5, secret: "i/vPhI825zlfVR8FyFQOAA==" }
