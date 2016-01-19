@@ -1,0 +1,12 @@
+---
+- name: install dependencies
+  apt: pkg={{ item }}
+  with_items:
+    - ntp
+
+- name: turn off monlist
+  lineinfile: >
+    dest=/etc/ntp.conf
+    regexp="^disable monitor$"
+    line="disable monitor"
+  notify: restart ntp

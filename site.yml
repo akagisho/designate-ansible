@@ -6,6 +6,7 @@
     - vars/{{ env }}.yml
   roles:
     - common
+    - ntp
     - designate-src
 
 - name: bind
@@ -15,6 +16,7 @@
     - vars/{{ env }}.yml
   roles:
     - common
+    - ntp
     - bind
 
 - name: nsd4
@@ -24,4 +26,5 @@
     - vars/{{ env }}.yml
   roles:
     - common
+    - ntp
     - nsd4
