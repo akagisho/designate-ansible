@@ -1,6 +1,8 @@
 ---
 - name: install dependencies
-  apt: pkg={{ item }}
+  apt: >
+    pkg={{ item }}
+    update_cache=yes
   with_items:
     - ntp
 
